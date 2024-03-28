@@ -20,7 +20,7 @@
     <?php View::component('users-table'); ?>
     <?php View::component('users-control', ['number' => 2]); ?>
     <?php View::component('user-modal'); ?>
-    <?php View::component('delete-modal'); ?>
+    <?php View::component('confirm-modal'); ?>
     <?php View::component('error-modal'); ?>
 </div>
 

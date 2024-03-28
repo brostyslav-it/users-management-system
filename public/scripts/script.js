@@ -1,9 +1,9 @@
 /**
- * Utility class for performing actions on the DOM elements.
+ * Class representing DOM actions.
  */
 class DOMActions {
     /**
-     * Updates user form inputs with provided data.
+     * Update user form inputs.
      * @param {string} firstName - The first name of the user.
      * @param {string} lastName - The last name of the user.
      * @param {boolean} status - The status of the user.
@@ -17,40 +17,40 @@ class DOMActions {
     }
 
     /**
-     * Updates group checkbox based on selected user checkboxes.
+     * Check if checkboxes are selected and update group check.
      */
     static checkboxesSelected() {
-        groupCheck.prop('checked', $('.user-check:checked').length === $('.user-check').length)
+        DOMElements.groupCheck.prop('checked', $('.user-check:checked').length === $('.user-check').length)
     }
 
     /**
-     * Creates error content for displaying in the DOM.
-     * @param {string} error - The error message to display.
-     * @returns {string} - Error content HTML.
+     * Create error content.
+     * @param {string} error - The error message.
+     * @returns {string} - Error message wrapped in HTML.
      */
     static createErrorsContent(error) {
         return `<div class="alert alert-danger">${error}</div>`
     }
 
     /**
-     * Retrieves the user row template asynchronously.
-     * @returns {Promise<string>} - User row template HTML.
+     * Get user row template asynchronously.
+     * @returns {Promise<string>} - Promise resolving to user row template HTML.
      */
     static async getUserRowTemplate() {
         return (await $.get('/templates/user-row.html'))
     }
 
     /**
-     * Creates a user row based on provided user data.
-     * @param {Object} user - The user data object.
-     * @returns {Promise<string>} - Created user row HTML.
+     * Create user row asynchronously.
+     * @param {Object} user - The user data.
+     * @returns {Promise<string>} - Promise resolving to HTML of the user row.
      */
     static async createUserRow(user) {
-        return (await userRowTemplate).replace(/{{(\w+)}}/g, (match, key) => user[key])
+        return (await DOMElements.userRowTemplate).replace(/{{(\w+)}}/g, (match, key) => user[key])
     }
 
     /**
-     * Creates users table and appends to the DOM.
+     * Create users table asynchronously.
      */
     static async createUsersTable() {
         for (const user of await UserActions.getUsers()) {
@@ -63,47 +63,60 @@ class DOMActions {
 }
 
 /**
- * Template for user row in the DOM.
- * @type {Promise<string>}
+ * Class representing DOM elements and their actions.
  */
-const userRowTemplate = DOMActions.getUserRowTemplate()
+class DOMElements {
+    /**
+     * User row template element.
+     * @type {Promise}
+     */
+    static userRowTemplate = DOMActions.getUserRowTemplate()
 
-window.onload = DOMActions.createUsersTable
+    /**
+     * User modal element.
+     * @type {jQuery}
+     */
+    static userModal = $('#user-modal')
 
-/**
- * Modal for adding or updating users.
- * @type {jQuery}
- */
-const userModal = $('#user-modal')
+    /**
+     * Confirm modal element.
+     * @type {jQuery}
+     */
+    static confirmModal = $('#confirm-modal')
 
-/**
- * Modal for confirming user deletion.
- * @type {jQuery}
- */
-const deleteModal = $('#delete-modal')
+    /**
+     * Confirm modal label element.
+     * @type {jQuery}
+     */
+    static confirmModalLabel = $('#confirm-modal-label')
 
-/**
- * Checkbox for selecting/deselecting all user checkboxes.
- * @type {jQuery}
- */
-const groupCheck = $('#group-check')
+    /**
+     * Confirm modal body element.
+     * @type {jQuery}
+     */
+    static confirmModalBody = $('#confirm-modal-body')
 
-/**
- * Handles 'ok' button control for a group of elements.
- * @param {number} controlsNumber - Number of controls.
- */
-async function handleOkControl(controlsNumber) {
-    await new GroupActions(controlsNumber).okClicked()
+    /**
+     * Confirm modal button element.
+     * @type {jQuery}
+     */
+    static confirmModalBtn = $('#confirm-modal-btn')
+
+    /**
+     * Group check element.
+     * @type {jQuery}
+     */
+    static groupCheck = $('#group-check')
 }
 
 /**
- * Represents utility functions for common tasks.
+ * Class representing utility functions.
  */
 class Utils {
     /**
-     * Creates a user object from form inputs.
-     * @param {number|null} id - The user ID (optional).
-     * @returns {Object} - Created user object.
+     * Create a user object.
+     * @param {string|null} id - The user ID.
+     * @returns {Object} - The user object.
      */
     static createUser(id = null) {
         const user = {
@@ -121,7 +134,7 @@ class Utils {
     }
 
     /**
-     * Retrieves active color based on user status.
+     * Get active color based on user status.
      * @param {boolean} status - The status of the user.
      * @returns {string} - Color string.
      */
@@ -131,14 +144,14 @@ class Utils {
 }
 
 /**
- * Handles HTTP requests and responses.
+ * Class representing request handling.
  */
 class RequestHandler {
     /**
-     * Handles HTTP request response.
-     * @param {Object} response - The HTTP response object.
-     * @param {Function} successFunction - Success callback function.
-     * @param {jQuery|null} caller - Caller modal (optional).
+     * Handle request response.
+     * @param {Object} response - The response object.
+     * @param {Function} successFunction - Function to execute on success.
+     * @param {jQuery|null} caller - The calling element.
      */
     static handleRequest(response, successFunction, caller = null) {
         if (caller !== null) {
@@ -155,12 +168,12 @@ class RequestHandler {
 }
 
 /**
- * Represents actions related to groups of users.
+ * Class representing group actions.
  */
 class GroupActions {
     /**
-     * Initializes GroupActions with number of controls.
-     * @param {number} controlsNumber - Number of controls.
+     * Create a group action.
+     * @param {number} controlsNumber - The number of controls.
      */
     constructor(controlsNumber) {
         this.controlsNumber = controlsNumber
@@ -170,15 +183,15 @@ class GroupActions {
     }
 
     /**
-     * Retrieves IDs of checked users.
-     * @returns {Array} - Array of checked user IDs.
+     * Get checked users' IDs.
+     * @returns {Array} - Array of user IDs.
      */
     getCheckedUsersId() {
         return this.checkedUsers.get().map(el => el.value)
     }
 
     /**
-     * Handles 'ok' button click action.
+     * Handle click on OK button.
      */
     async okClicked() {
         if (this.checkedUsers.length > 0 && this.action === '') {
@@ -195,7 +208,7 @@ class GroupActions {
     }
 
     /**
-     * Handles action based on selected action.
+     * Handle selected action.
      */
     async handleAction() {
         switch (this.action) {
@@ -208,7 +221,7 @@ class GroupActions {
                 break;
 
             case '3':
-                await this.deleteUsers()
+                await this.confirmUsersDeletion()
                 break;
 
             default:
@@ -217,7 +230,7 @@ class GroupActions {
     }
 
     /**
-     * Sets selected users active.
+     * Set selected users as active.
      */
     async setUsersActive() {
         RequestHandler.handleRequest(await $.post('/update-status', {
@@ -227,7 +240,7 @@ class GroupActions {
     }
 
     /**
-     * Sets selected users not active.
+     * Set selected users as not active.
      */
     async setUsersNotActive() {
         RequestHandler.handleRequest(await $.post('/update-status', {
@@ -237,20 +250,32 @@ class GroupActions {
     }
 
     /**
-     * Deletes selected users.
+     * Confirm users deletion.
+     */
+    async confirmUsersDeletion() {
+        await ModalActions.fillConfirmModal(
+            'Deleting selected users confirmation',
+            'Delete selected users',
+            'Are you sure you want to delete selected users?',
+            async () => await this.deleteUsers()
+        )
+    }
+
+    /**
+     * Delete selected users.
      */
     async deleteUsers() {
         RequestHandler.handleRequest(await $.post('/delete', {id: this.checkedUsersId}), () => {
             this.checkedUsers.each(function () {
                 $(this).parent().parent().remove()
-                groupCheck.prop('checked', false)
+                DOMElements.groupCheck.prop('checked', false)
             })
-        })
+        }, DOMElements.confirmModal)
     }
 
     /**
-     * Changes status of checked users.
-     * @param {boolean} status - New status.
+     * Change status of checked users.
+     * @param {boolean} status - The status to set.
      */
     changeCheckedUsersStatus(status) {
         this.checkedUsers.each(function () {
@@ -260,60 +285,53 @@ class GroupActions {
 }
 
 /**
- * Handles group checkbox change event.
- */
-groupCheck.change(function () {
-    $('.user-check').prop('checked', this.checked)
-})
-
-/**
- * Represents actions related to individual users.
+ * Class representing user actions.
  */
 class UserActions {
     /**
-     * Retrieves list of users.
-     * @returns {Promise<Array>} - Array of user objects.
+     * Get users asynchronously.
+     * @returns {Promise<Array>} - Promise resolving to array of users.
      */
     static async getUsers() {
         return (await $.getJSON('/users')).users
     }
 
     /**
-     * Finds user by ID.
-     * @param {number} id - The ID of the user to find.
-     * @returns {Promise<Object>} - User object.
+     * Find user asynchronously.
+     * @param {string} id - The user ID.
+     * @returns {Promise<Object>} - Promise resolving to user object.
      */
     static async findUser(id) {
         return (await $.getJSON(`/user/${id}`)).user
     }
 
     /**
-     * Adds a new user.
+     * Add user asynchronously.
      */
     static async addUser() {
         const user = Utils.createUser()
         const res = await $.post(`/add`, user)
 
         RequestHandler.handleRequest(res, async () => {
-            userModal.modal('hide')
+            DOMElements.userModal.modal('hide')
             DOMActions.updateUserFormInputs('', '', false, '')
             $('#users-table > tbody').append(await DOMActions.createUserRow({
                 ...user,
                 color: Utils.getActiveColor(user.status),
                 id: res.id
             }))
-        }, userModal)
+        }, DOMElements.userModal)
     }
 
     /**
-     * Updates an existing user.
-     * @param {number} id - The ID of the user to update.
+     * Update user asynchronously.
+     * @param {string} id - The user ID.
      */
     static async updateUser(id) {
         const user = Utils.createUser(id)
 
         RequestHandler.handleRequest(await $.post(`/update`, user), () => {
-            userModal.modal('hide')
+            DOMElements.userModal.modal('hide')
             DOMActions.updateUserFormInputs('', '', false, '')
 
             const userRow = $(`#user-${user.id}`)
@@ -321,32 +339,35 @@ class UserActions {
             userRow.find('.user-name').text(`${user.first_name} ${user.last_name}`)
             userRow.find('.user-role').text(user.role)
             userRow.find('.user-active').attr('fill', Utils.getActiveColor(user.status))
-        }, userModal)
+        }, DOMElements.userModal)
     }
 
     /**
-     * Deletes a user.
-     * @param {number} id - The ID of the user to delete.
+     * Delete user asynchronously.
+     * @param {string} id - The user ID.
      */
     static async deleteUser(id) {
-        RequestHandler.handleRequest(await $.post('/delete', {id}), () => {
-            deleteModal.modal('hide')
+        RequestHandler.handleRequest(await $.post('/delete', {id: [id]}), () => {
+            DOMElements.confirmModal.modal('hide')
             $(`#user-${id}`).remove()
-        }, deleteModal)
+        }, DOMElements.confirmModal)
     }
 }
 
 /**
- * Represents actions related to modals.
+ * Class representing modal actions.
  */
 class ModalActions {
-    /** @type {jQuery} */
+    /**
+     * Errors area element.
+     * @type {jQuery}
+     */
     static errorsArea = $('#errors-area')
 
     /**
-     * Shows error modal.
+     * Show error modal.
      * @param {string} error - The error message.
-     * @param {jQuery|null} caller - Caller modal (optional).
+     * @param {jQuery|null} caller - The calling element.
      */
     static showErrorModal(error, caller = null) {
         $('#error-modal').modal('show')
@@ -360,8 +381,8 @@ class ModalActions {
     }
 
     /**
-     * Handles user modal showing event.
-     * @param {jQuery.Event} e - The event object.
+     * Show user modal.
+     * @param {object} e - The event object.
      */
     static async userModalShowed(e) {
         if (e.relatedTarget === undefined) {
@@ -387,23 +408,61 @@ class ModalActions {
     }
 
     /**
-     * Handles delete modal showing event.
-     * @param {jQuery.Event} e - The event object.
+     * Fill confirm modal.
+     * @param {string} labelText - The label text.
+     * @param {string} btnText - The button text.
+     * @param {string} bodyText - The body text.
+     * @param {Function} clickFunction - The function to execute on click.
      */
-    static async deleteModalShowed(e) {
-        if (e.relatedTarget === undefined) {
-            return
-        }
+    static async fillConfirmModal(labelText, btnText, bodyText, clickFunction) {
+        DOMElements.confirmModal.modal('show')
+        DOMElements.confirmModalBtn.off('click')
 
-        const id = $(e.relatedTarget).data('id')
-        const user = await UserActions.findUser(id)
-        const deleteUserBtn = $('#delete-user-btn')
+        DOMElements.confirmModalLabel.text(labelText)
+        DOMElements.confirmModalBtn.text(btnText)
 
-        $('#delete-modal-body').text(`Are you sure you want to delete ${user.first_name} ${user.last_name}?`)
-        deleteUserBtn.off('click')
-        deleteUserBtn.on('click', () => UserActions.deleteUser([id]))
+        DOMElements.confirmModalBody.text(bodyText)
+
+        DOMElements.confirmModalBtn.click(clickFunction)
     }
 }
 
-userModal.on('show.bs.modal', (e) => ModalActions.userModalShowed(e))
-deleteModal.on('show.bs.modal', (e) => ModalActions.deleteModalShowed(e))
+/**
+ * Initialize users table on window load.
+ */
+window.onload = DOMActions.createUsersTable
+
+/**
+ * Show user modal on show.bs.modal event.
+ */
+DOMElements.userModal.on('show.bs.modal', (e) => ModalActions.userModalShowed(e))
+
+/**
+ * Handle group check change.
+ */
+DOMElements.groupCheck.change(function () {
+    $('.user-check').prop('checked', this.checked)
+})
+
+/**
+ * Handle OK control action.
+ * @param {number} controlsNumber - The number of controls.
+ */
+async function handleOkControl(controlsNumber) {
+    await new GroupActions(controlsNumber).okClicked()
+}
+
+/**
+ * Handle user deletion action.
+ * @param {string} id - The user ID.
+ */
+async function handleUserDeletion(id) {
+    const user = await UserActions.findUser(id)
+
+    await ModalActions.fillConfirmModal(
+        'Deleting user confirmation',
+        'Delete user',
+        `Are you sure you want to delete ${user.first_name} ${user.last_name}?`,
+        async () => await UserActions.deleteUser(id)
+    )
+}
