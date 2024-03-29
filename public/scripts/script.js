@@ -159,7 +159,7 @@ class RequestHandler {
         }
 
         if (!response.status) {
-            ModalActions.showErrorModal(response.error.message, caller)
+            ModalActions.showErrorModal(response.error.message, true)
             return
         }
 
@@ -365,13 +365,13 @@ class ModalActions {
     /**
      * Show error modal.
      * @param {string} error - The error message.
-     * @param {jQuery|null} caller - The calling element.
+     * @param showUserModal - Is needed to show user modal window
      */
-    static showErrorModal(error, caller = null) {
+    static showErrorModal(error, showUserModal = false) {
         $('#error-modal').modal('show')
 
-        if (caller !== null) {
-            $('#error-ok-btn').click(() => caller.modal('show'))
+        if (showUserModal === true) {
+            $('#error-ok-btn').click(() => DOMElements.userModal.modal('show'))
         }
 
         this.errorsArea.empty()
