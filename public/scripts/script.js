@@ -253,7 +253,7 @@ class GroupActions {
      * Confirm users deletion.
      */
     async confirmUsersDeletion() {
-        await ModalActions.fillConfirmModal(
+        await ModalActions.fillAndShowConfirmModal(
             'Deleting selected users confirmation',
             'Delete selected users',
             'Are you sure you want to delete selected users?',
@@ -314,7 +314,6 @@ class UserActions {
 
         RequestHandler.handleRequest(res, async () => {
             DOMElements.userModal.modal('hide')
-            DOMActions.updateUserFormInputs('', '', false, '')
             $('#users-table > tbody').append(await DOMActions.createUserRow({
                 ...user,
                 color: Utils.getActiveColor(user.status),
@@ -332,7 +331,6 @@ class UserActions {
 
         RequestHandler.handleRequest(await $.post(`/update`, user), () => {
             DOMElements.userModal.modal('hide')
-            DOMActions.updateUserFormInputs('', '', false, '')
 
             const userRow = $(`#user-${user.id}`)
 
@@ -389,6 +387,8 @@ class ModalActions {
             return
         }
 
+        DOMActions.updateUserFormInputs('', '', false, '')
+
         const action = $(e.relatedTarget).data('action')
         const actionText = action.charAt(0).toUpperCase() + action.slice(1)
         const modalActionButton = $('#modal-action')
@@ -408,13 +408,13 @@ class ModalActions {
     }
 
     /**
-     * Fill confirm modal.
+     * Fill and show confirm modal.
      * @param {string} labelText - The label text.
      * @param {string} btnText - The button text.
      * @param {string} bodyText - The body text.
      * @param {Function} clickFunction - The function to execute on click.
      */
-    static async fillConfirmModal(labelText, btnText, bodyText, clickFunction) {
+    static async fillAndShowConfirmModal(labelText, btnText, bodyText, clickFunction) {
         DOMElements.confirmModal.modal('show')
         DOMElements.confirmModalBtn.off('click')
 
@@ -459,7 +459,7 @@ async function handleOkControl(controlsNumber) {
 async function handleUserDeletion(id) {
     const user = await UserActions.findUser(id)
 
-    await ModalActions.fillConfirmModal(
+    await ModalActions.fillAndShowConfirmModal(
         'Deleting user confirmation',
         'Delete user',
         `Are you sure you want to delete ${user.first_name} ${user.last_name}?`,
