@@ -43,6 +43,15 @@ class UserSystemController extends Controller
     }
 
     /**
+     * Retrieves all roles.
+     */
+    public function getRoles(): void
+    {
+        $this->validateWithResponse([[!$roles = $this->model->getRoles(), 'Can\'t get roles', 500]]);
+        Response::success(['roles' => $roles->fetch_all(MYSQLI_ASSOC)]);
+    }
+
+    /**
      * Adds a new user.
      */
     public function addUser(): void
@@ -131,8 +140,7 @@ class UserSystemController extends Controller
             [mb_strlen($user->getFirstName()) > 70, 'First name can be maximum 70 characters', 400],
             [empty($user->getLastName()), 'Last name is empty', 400],
             [mb_strlen($user->getLastName()) > 70, 'Last name can be maximum 70 characters', 400],
-            [empty($user->getRole()), 'Role is empty', 400],
-            [mb_strlen($user->getRole()) > 70, 'Role can be maximum 70 characters', 400]
+            [empty($user->getRole()), 'Role is empty', 400]
         ];
     }
 }

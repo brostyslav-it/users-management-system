@@ -6,6 +6,8 @@
             </div>
 
             <div class="modal-body">
+                <div><div class="d-none" id="user-modal-error"></div></div>
+
                 <div class="form-group">
                     <label for="first-name" class="col-form-label">First name</label>
                     <input type="text" class="form-control" id="first-name" name="first_name" maxlength="70">
@@ -29,9 +31,6 @@
 
                     <select class="form-select" id="role" name="role">
                         <option value="" selected>-Please Select-</option>
-
-                        <option value="Admin">Admin</option>
-                        <option value="User">User</option>
                     </select>
                 </div>
             </div>

@@ -1,7 +1,7 @@
 <tr id="user-{{id}}">
-    <td><input class="form-check-input user-check" onchange="DOMActions.checkboxesSelected()" type="checkbox" value="{{id}}"></td>
+    <td><input class="form-check-input user-check" onchange="DOMActions.updateGroupCheck()" type="checkbox" value="{{id}}"></td>
     <td class="user-name">{{first_name}} {{last_name}}</td>
-    <td class="user-role">{{role}}</td>
+    <td class="user-role">{{role_name}}</td>
 
     <td class="text-center">
         <svg fill="{{color}}" xmlns="http://www.w3.org/2000/svg" width="16" height="16"

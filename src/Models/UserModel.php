@@ -17,7 +17,16 @@ class UserModel extends Model
      */
     public function getUsers(): false|mysqli_result
     {
-        return $this->query('SELECT * FROM users');
+        return $this->query('SELECT * FROM users JOIN roles ON users.role = roles.role_id');
+    }
+
+    /**
+     * Retrieves all roles from the database.
+     * @return false|mysqli_result The query result containing roles, or false on failure.
+     */
+    public function getRoles(): false|mysqli_result
+    {
+        return $this->query('SELECT * FROM roles');
     }
 
     /**
@@ -29,7 +38,7 @@ class UserModel extends Model
     {
         return $this->query(
             'INSERT INTO users VALUES (NULL, ?, ?, ?, ?)',
-            ['ssis', [
+            ['ssii', [
                 $user->getFirstName(),
                 $user->getLastName(),
                 $user->getStatus(),
@@ -45,7 +54,7 @@ class UserModel extends Model
      */
     public function getUser(int $id): false|array|null
     {
-        $result = $this->query('SELECT * FROM users WHERE id = ?', ['i', [$id]]);
+        $result = $this->query('SELECT * FROM users JOIN roles ON users.role = roles.role_id WHERE users.id = ?', ['i', [$id]]);
         return $result->num_rows > 0 ? $result->fetch_assoc() : false;
     }
 
@@ -63,7 +72,7 @@ class UserModel extends Model
 
         $this->query(
             'UPDATE users SET first_name = ?, last_name = ?, status = ?, role = ? WHERE id = ?',
-            ['ssisi', [
+            ['ssiii', [
                 $user->getFirstName(),
                 $user->getLastName(),
                 $user->getStatus(),

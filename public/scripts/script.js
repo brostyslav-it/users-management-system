@@ -19,7 +19,7 @@ class DOMActions {
     /**
      * Check if checkboxes are selected and update group check.
      */
-    static checkboxesSelected() {
+    static updateGroupCheck() {
         DOMElements.groupCheck.prop('checked', $('.user-check:checked').length === $('.user-check').length)
     }
 
@@ -46,7 +46,7 @@ class DOMActions {
      * @returns {Promise<string>} - Promise resolving to HTML of the user row.
      */
     static async createUserRow(user) {
-        return (await DOMElements.userRowTemplate).replace(/{{(\w+)}}/g, (match, key) => user[key])
+        return (await DOMActions.getUserRowTemplate()).replace(/{{(\w+)}}/g, (match, key) => user[key])
     }
 
     /**
@@ -60,18 +60,21 @@ class DOMActions {
             }))
         }
     }
+
+    /**
+     * Loading roles asynchronously.
+     */
+    static async loadRoles() {
+        for (const role of await UserActions.getRoles()) {
+            $('#role').append(`<option value="${role.role_id}">${role.role_name}</option>`)
+        }
+    }
 }
 
 /**
  * Class representing DOM elements and their actions.
  */
 class DOMElements {
-    /**
-     * User row template element.
-     * @type {Promise}
-     */
-    static userRowTemplate = DOMActions.getUserRowTemplate()
-
     /**
      * User modal element.
      * @type {jQuery}
@@ -122,7 +125,7 @@ class Utils {
         const user = {
             first_name: $('#first-name').val().trim(),
             last_name: $('#last-name').val().trim(),
-            status: $('#status').prop('checked') ? true : '',
+            status: $('#status').prop('checked') ? 1 : 0,
             role: $('#role').val().trim()
         }
 
@@ -151,19 +154,27 @@ class RequestHandler {
      * Handle request response.
      * @param {Object} response - The response object.
      * @param {Function} successFunction - Function to execute on success.
+     * @param isUserModal - Detects is user modal.
      * @param {jQuery|null} caller - The calling element.
      */
-    static handleRequest(response, successFunction, caller = null) {
+    static handleRequest(response, successFunction, isUserModal = false, caller = null) {
+        if (!response.status) {
+            const errorMessage = response.error.message
+            isUserModal ? ModalActions.setUserModalError(errorMessage) : ModalActions.showErrorModal(errorMessage)
+            return
+        }
+
         if (caller !== null) {
             caller.modal('hide')
         }
 
-        if (!response.status) {
-            ModalActions.showErrorModal(response.error.message, true)
-            return
-        }
-
         successFunction()
+
+        if (isUserModal) {
+            $('#user-modal-error')
+                .prop('class', '')
+                .empty()
+        }
     }
 }
 
@@ -270,7 +281,7 @@ class GroupActions {
                 $(this).parent().parent().remove()
                 DOMElements.groupCheck.prop('checked', false)
             })
-        }, DOMElements.confirmModal)
+        }, false, DOMElements.confirmModal)
     }
 
     /**
@@ -297,6 +308,14 @@ class UserActions {
     }
 
     /**
+     * Get roles asynchronously.
+     * @returns {Promise<Array>} - Promise resolving to array of roles.
+     */
+    static async getRoles() {
+        return (await $.getJSON('/roles')).roles
+    }
+
+    /**
      * Find user asynchronously.
      * @param {string} id - The user ID.
      * @returns {Promise<Object>} - Promise resolving to user object.
@@ -313,13 +332,18 @@ class UserActions {
         const res = await $.post(`/add`, user)
 
         RequestHandler.handleRequest(res, async () => {
-            DOMElements.userModal.modal('hide')
-            $('#users-table > tbody').append(await DOMActions.createUserRow({
-                ...user,
-                color: Utils.getActiveColor(user.status),
-                id: res.id
-            }))
-        }, DOMElements.userModal)
+            $('#users-table > tbody')
+                .append(await DOMActions.createUserRow({
+                    ...user,
+                    color: Utils.getActiveColor(user.status),
+                    id: res.id,
+                    role_name: $('#role option:selected').text()
+                }))
+                .find('.user-check')
+                .prop('checked', DOMElements.groupCheck.prop('checked'))
+
+            DOMActions.updateGroupCheck()
+        }, true, DOMElements.userModal)
     }
 
     /**
@@ -330,14 +354,12 @@ class UserActions {
         const user = Utils.createUser(id)
 
         RequestHandler.handleRequest(await $.post(`/update`, user), () => {
-            DOMElements.userModal.modal('hide')
-
             const userRow = $(`#user-${user.id}`)
 
             userRow.find('.user-name').text(`${user.first_name} ${user.last_name}`)
-            userRow.find('.user-role').text(user.role)
+            userRow.find('.user-role').text($('#role option:selected').text())
             userRow.find('.user-active').attr('fill', Utils.getActiveColor(user.status))
-        }, DOMElements.userModal)
+        }, true, DOMElements.userModal)
     }
 
     /**
@@ -348,7 +370,8 @@ class UserActions {
         RequestHandler.handleRequest(await $.post('/delete', {id: [id]}), () => {
             DOMElements.confirmModal.modal('hide')
             $(`#user-${id}`).remove()
-        }, DOMElements.confirmModal)
+            DOMActions.updateGroupCheck()
+        }, false, DOMElements.confirmModal)
     }
 }
 
@@ -365,17 +388,10 @@ class ModalActions {
     /**
      * Show error modal.
      * @param {string} error - The error message.
-     * @param showUserModal - Is needed to show user modal window
      */
-    static showErrorModal(error, showUserModal = false) {
+    static showErrorModal(error) {
         $('#error-modal').modal('show')
-
-        if (showUserModal === true) {
-            $('#error-ok-btn').click(() => DOMElements.userModal.modal('show'))
-        }
-
-        this.errorsArea.empty()
-        this.errorsArea.append(DOMActions.createErrorsContent(error))
+        this.errorsArea.empty().append(DOMActions.createErrorsContent(error))
     }
 
     /**
@@ -387,6 +403,7 @@ class ModalActions {
             return
         }
 
+        this.clearUserModalError()
         DOMActions.updateUserFormInputs('', '', false, '')
 
         const action = $(e.relatedTarget).data('action')
@@ -394,12 +411,11 @@ class ModalActions {
         const modalActionButton = $('#modal-action')
 
         $('#modal-title').text(`${actionText} user`)
-        modalActionButton.off('click')
-        modalActionButton.text(actionText)
+        modalActionButton.off('click').text(actionText)
 
         if (action === 'update') {
             const user = await UserActions.findUser($(e.relatedTarget).data('id'))
-            DOMActions.updateUserFormInputs(user.first_name, user.last_name, user.status, user.role)
+            DOMActions.updateUserFormInputs(user.first_name, user.last_name, user.status, user.role_id)
             modalActionButton.click(() => UserActions.updateUser(user.id))
             return
         }
@@ -416,21 +432,38 @@ class ModalActions {
      */
     static async fillAndShowConfirmModal(labelText, btnText, bodyText, clickFunction) {
         DOMElements.confirmModal.modal('show')
-        DOMElements.confirmModalBtn.off('click')
-
+        DOMElements.confirmModalBtn.off('click').text(btnText).click(clickFunction)
         DOMElements.confirmModalLabel.text(labelText)
-        DOMElements.confirmModalBtn.text(btnText)
-
         DOMElements.confirmModalBody.text(bodyText)
+    }
 
-        DOMElements.confirmModalBtn.click(clickFunction)
+    /**
+     * Set user modal error.
+     * @param {string} error - The error message.
+     */
+    static setUserModalError(error) {
+        $('#user-modal-error')
+            .prop('class', 'alert alert-danger')
+            .text(error)
+    }
+
+    /**
+     * Clear user modal error.
+     */
+    static clearUserModalError() {
+        $('#user-modal-error')
+            .prop('class', 'd-none')
+            .empty()
     }
 }
 
 /**
  * Initialize users table on window load.
  */
-window.onload = DOMActions.createUsersTable
+window.onload = async () => {
+    await DOMActions.createUsersTable()
+    await DOMActions.loadRoles()
+}
 
 /**
  * Show user modal on show.bs.modal event.
