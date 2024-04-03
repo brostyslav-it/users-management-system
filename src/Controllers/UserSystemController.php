@@ -30,25 +30,11 @@ class UserSystemController extends Controller
      */
     public function usersPage(): void
     {
-        View::page('users-page');
-    }
+        if (!($users = $this->model->getUsers()) || !($roles = $this->model->getRoles())) {
+            die('Server Error');
+        }
 
-    /**
-     * Retrieves all users.
-     */
-    public function getUsers(): void
-    {
-        $this->validateWithResponse([[!$users = $this->model->getUsers(), 'Can\'t get users', 500]]);
-        Response::success(['users' => $this->normalizeBoolValues($users->fetch_all(MYSQLI_ASSOC))]);
-    }
-
-    /**
-     * Retrieves all roles.
-     */
-    public function getRoles(): void
-    {
-        $this->validateWithResponse([[!$roles = $this->model->getRoles(), 'Can\'t get roles', 500]]);
-        Response::success(['roles' => $roles->fetch_all(MYSQLI_ASSOC)]);
+        View::page('users-page', ['users' => $users->fetch_all(MYSQLI_ASSOC), 'roles' => $roles->fetch_all(MYSQLI_ASSOC)]);
     }
 
     /**
@@ -68,7 +54,7 @@ class UserSystemController extends Controller
     {
         preg_match('#^/user/(\d+)$#', $_SERVER['REQUEST_URI'], $match);
         $this->validateWithResponse([[!$user = $this->model->getUser($match[1]), "There is no user with id $match[1]", 404]]);
-        Response::success(['user' => $this->normalizeBoolValues([$user])[0]]);
+        Response::success(['user' => $user]);
     }
 
     /**
@@ -115,17 +101,6 @@ class UserSystemController extends Controller
         $this->validateWithResponse([[!$this->model->updateUsersStatus($_POST['id'], Request::getPost('status')), 'Error updating', 404]]);
 
         Response::success();
-    }
-
-    /**
-     * Normalizes boolean values in user array.
-     * @param array $users Array of users.
-     * @return array Normalized array of users.
-     */
-    private function normalizeBoolValues(array $users): array
-    {
-        array_walk($users, fn(array &$user) => $user['status'] = (bool)$user['status']);
-        return $users;
     }
 
     /**

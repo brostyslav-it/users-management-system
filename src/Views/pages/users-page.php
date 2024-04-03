@@ -17,9 +17,9 @@
     <h5>Users</h5>
 
     <?php View::component('users-control', ['number' => 1]); ?>
-    <?php View::component('users-table'); ?>
+    <?php View::component('users-table', $data['users']); ?>
     <?php View::component('users-control', ['number' => 2]); ?>
-    <?php View::component('user-modal'); ?>
+    <?php View::component('user-modal', $data['roles']); ?>
     <?php View::component('confirm-modal'); ?>
     <?php View::component('error-modal'); ?>
 </div>

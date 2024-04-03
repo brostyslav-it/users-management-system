@@ -33,41 +33,37 @@ class DOMActions {
     }
 
     /**
-     * Get user row template asynchronously.
-     * @returns {Promise<string>} - Promise resolving to user row template HTML.
-     */
-    static async getUserRowTemplate() {
-        return (await $.get('/templates/user-row.html'))
-    }
-
-    /**
-     * Create user row asynchronously.
+     * Create user row.
      * @param {Object} user - The user data.
-     * @returns {Promise<string>} - Promise resolving to HTML of the user row.
+     * @returns {string} - HTML of the user row.
      */
-    static async createUserRow(user) {
-        return (await DOMActions.getUserRowTemplate()).replace(/{{(\w+)}}/g, (match, key) => user[key])
-    }
+    static createUserRow(user) {
+        return `
+        <tr id="user-${user.id}">
+            <td><input class="form-check-input user-check" onchange="DOMActions.updateGroupCheck()" type="checkbox" value="${user.id}"></td>
+            <td class="user-name">${user.first_name} ${user.last_name}</td>
+            <td class="user-role">${user.role_name}</td>
+        
+            <td class="text-center">
+                <svg fill="${Utils.getActiveColor(user.status)}" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
+                     class="bi bi-circle-fill user-active" viewBox="0 0 16 16">
+                    <circle cx="8" cy="8" r="8"/>
+                </svg>
+            </td>
+        
+            <td class="text-center">
+                <div class="btn-group" role="group" id="user-actions-buttons">
+                    <button type="button" class="btn btn-outline-dark d-flex justify-content-center align-items-center" data-bs-toggle="modal" data-bs-target="#user-modal" data-action="update" data-id="${user.id}">
+                        <img src="/assets/edit.ico" alt="Edit icon" width="16">
+                    </button>
 
-    /**
-     * Create users table asynchronously.
-     */
-    static async createUsersTable() {
-        for (const user of await UserActions.getUsers()) {
-            $('#users-table > tbody').append(await DOMActions.createUserRow({
-                ...user,
-                color: Utils.getActiveColor(user.status)
-            }))
-        }
-    }
-
-    /**
-     * Loading roles asynchronously.
-     */
-    static async loadRoles() {
-        for (const role of await UserActions.getRoles()) {
-            $('#role').append(`<option value="${role.role_id}">${role.role_name}</option>`)
-        }
+                    <button type="button" class="btn btn-outline-dark d-flex justify-content-center align-items-center" onclick="handleUserDeletion(${user.id})">
+                        <img src="/assets/delete.ico" alt="Edit icon" width="16">
+                    </button>
+                </div>
+            </td>
+        </tr>
+        `
     }
 }
 
@@ -300,22 +296,6 @@ class GroupActions {
  */
 class UserActions {
     /**
-     * Get users asynchronously.
-     * @returns {Promise<Array>} - Promise resolving to array of users.
-     */
-    static async getUsers() {
-        return (await $.getJSON('/users')).users
-    }
-
-    /**
-     * Get roles asynchronously.
-     * @returns {Promise<Array>} - Promise resolving to array of roles.
-     */
-    static async getRoles() {
-        return (await $.getJSON('/roles')).roles
-    }
-
-    /**
      * Find user asynchronously.
      * @param {string} id - The user ID.
      * @returns {Promise<Object>} - Promise resolving to user object.
@@ -333,7 +313,7 @@ class UserActions {
 
         RequestHandler.handleRequest(res, async () => {
             $('#users-table > tbody')
-                .append(await DOMActions.createUserRow({
+                .append(DOMActions.createUserRow({
                     ...user,
                     color: Utils.getActiveColor(user.status),
                     id: res.id,
@@ -455,14 +435,6 @@ class ModalActions {
             .prop('class', 'd-none')
             .empty()
     }
-}
-
-/**
- * Initialize users table on window load.
- */
-window.onload = async () => {
-    await DOMActions.createUsersTable()
-    await DOMActions.loadRoles()
 }
 
 /**

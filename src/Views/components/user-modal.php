@@ -6,7 +6,9 @@
             </div>
 
             <div class="modal-body">
-                <div><div class="d-none" id="user-modal-error"></div></div>
+                <div>
+                    <div class="d-none" id="user-modal-error"></div>
+                </div>
 
                 <div class="form-group">
                     <label for="first-name" class="col-form-label">First name</label>
@@ -31,6 +33,9 @@
 
                     <select class="form-select" id="role" name="role">
                         <option value="" selected>-Please Select-</option>
+                        <?php foreach ($data as $role): ?>
+                            <option value="<?= $role['role_id'] ?>"><?= $role['role_name'] ?></option>
+                        <?php endforeach; ?>
                     </select>
                 </div>
             </div>
