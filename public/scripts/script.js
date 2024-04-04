@@ -296,7 +296,7 @@ class UserActions {
      * @returns {Promise<Object>} - Promise resolving to user object.
      */
     static async findUser(id) {
-        return (await $.getJSON(`/user/${id}`)).user
+        return (await $.post(`/user/${id}`)).user
     }
 
     /**
