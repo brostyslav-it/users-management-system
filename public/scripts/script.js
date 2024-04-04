@@ -53,13 +53,8 @@ class DOMActions {
         
             <td class="text-center">
                 <div class="btn-group" role="group" id="user-actions-buttons">
-                    <button type="button" class="btn btn-outline-dark d-flex justify-content-center align-items-center" data-bs-toggle="modal" data-bs-target="#user-modal" data-action="update" data-id="${user.id}">
-                        <img src="/assets/edit.ico" alt="Edit icon" width="16">
-                    </button>
-
-                    <button type="button" class="btn btn-outline-dark d-flex justify-content-center align-items-center" onclick="handleUserDeletion(${user.id})">
-                        <img src="/assets/delete.ico" alt="Edit icon" width="16">
-                    </button>
+                    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#user-modal" data-action="update" data-id="${user.id}"><i class="bi bi-pencil-square"></i></button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="handleUserDeletion(${user.id})"><i class="bi bi-trash"></i></button>
                 </div>
             </td>
         </tr>
