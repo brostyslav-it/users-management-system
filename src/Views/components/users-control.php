@@ -1,5 +1,5 @@
 <div class="d-flex w-50 gap-2">
-    <button class="btn btn-primary" onclick="handleUserAdd()">Add</button>
+    <button class="btn btn-primary" onclick="HandleActions.handleUserAdd()">Add</button>
 
     <select class="form-select action-select" name="user_action" id="action-select-<?= $data['number'] ?>">
         <option value="" selected>-Please Select-</option>
@@ -9,6 +9,6 @@
         <option value="3">3. Delete</option>
     </select>
 
-    <button class="btn btn-primary" id="ok-button-<?= $data['number'] ?>" onclick="handleOkControl(<?= $data['number'] ?>)">OK
+    <button class="btn btn-primary" id="ok-button-<?= $data['number'] ?>" onclick="HandleActions.handleOkControl(<?= $data['number'] ?>)">OK
     </button>
 </div>

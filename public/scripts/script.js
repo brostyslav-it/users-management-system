@@ -43,18 +43,18 @@ class DOMActions {
             <td><input class="form-check-input user-check" onchange="DOMActions.updateGroupCheck()" type="checkbox" value="${user.id}"></td>
             <td class="user-name">${user.first_name} ${user.last_name}</td>
             <td class="user-role">${user.role_name}</td>
-        
+
             <td class="text-center">
                 <svg fill="${Utils.getActiveColor(user.status)}" xmlns="http://www.w3.org/2000/svg" width="16" height="16"
                      class="bi bi-circle-fill user-active" viewBox="0 0 16 16">
                     <circle cx="8" cy="8" r="8"/>
                 </svg>
             </td>
-        
+
             <td class="text-center">
                 <div class="btn-group" role="group" id="user-actions-buttons">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#user-modal" data-action="update" data-id="${user.id}"><i class="bi bi-pencil-square"></i></button>
-                    <button type="button" class="btn btn-outline-secondary" onclick="handleUserDeletion(${user.id})"><i class="bi bi-trash"></i></button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="HandleActions.handleUserUpdate(${user.id})"><i class="bi bi-pencil-square"></i></button>
+                    <button type="button" class="btn btn-outline-secondary" onclick="HandleActions.handleUserDeletion(${user.id})"><i class="bi bi-trash"></i></button>
                 </div>
             </td>
         </tr>
@@ -422,57 +422,62 @@ DOMElements.groupCheck.change(function () {
 })
 
 /**
- * Handle OK control action.
- * @param {number} controlsNumber - The number of controls.
+ * Class representing actions handlers.
  */
-async function handleOkControl(controlsNumber) {
-    await new GroupActions(controlsNumber).okClicked()
-}
-
-/**
- * Handle user add action.
- */
-async function handleUserAdd() {
-    DOMElements.userModal.modal('show')
-    ModalActions.userModalShowed('Add')
-    $('#modal-action').click(() => UserActions.addUser())
-}
-
-/**
- * Handle user update action.
- * @param {string} id - The user ID.
- */
-async function handleUserUpdate(id) {
-    const user = await UserActions.findUser(id)
-
-    if (!user) {
-        ModalActions.showErrorModal('User doesn\'t exist')
-        return
+class HandleActions {
+    /**
+     * Handle OK control action.
+     * @param {number} controlsNumber - The number of controls.
+     */
+    async static handleOkControl(controlsNumber) {
+        await new GroupActions(controlsNumber).okClicked()
     }
 
-    DOMElements.userModal.modal('show')
-    ModalActions.userModalShowed('Update')
-
-    DOMActions.updateUserFormInputs(user.first_name, user.last_name, user.status, user.role_id)
-    $('#modal-action').click(() => UserActions.updateUser(user.id))
-}
-
-/**
- * Handle user deletion action.
- * @param {string} id - The user ID.
- */
-async function handleUserDeletion(id) {
-    const user = await UserActions.findUser(id)
-
-    if (user === false) {
-        ModalActions.showErrorModal('User doesn\'t exist')
-        return
+    /**
+     * Handle user add action.
+     */
+    async static handleUserAdd() {
+        DOMElements.userModal.modal('show')
+        ModalActions.userModalShowed('Add')
+        $('#modal-action').click(() => UserActions.addUser())
     }
 
-    ModalActions.fillAndShowConfirmModal(
-        'Deleting user confirmation',
-        'Delete user',
-        `Are you sure you want to delete ${user.first_name} ${user.last_name}?`,
-        async () => await UserActions.deleteUser(id)
-    )
+    /**
+     * Handle user update action.
+     * @param {string} id - The user ID.
+     */
+    async static handleUserUpdate(id) {
+        const user = await UserActions.findUser(id)
+
+        if (!user) {
+            ModalActions.showErrorModal('User doesn\'t exist')
+            return
+        }
+
+        DOMElements.userModal.modal('show')
+        ModalActions.userModalShowed('Update')
+
+        DOMActions.updateUserFormInputs(user.first_name, user.last_name, user.status, user.role_id)
+        $('#modal-action').click(() => UserActions.updateUser(user.id))
+    }
+
+    /**
+     * Handle user deletion action.
+     * @param {string} id - The user ID.
+     */
+    async static handleUserDeletion(id) {
+        const user = await UserActions.findUser(id)
+
+        if (user === false) {
+            ModalActions.showErrorModal('User doesn\'t exist')
+            return
+        }
+
+        ModalActions.fillAndShowConfirmModal(
+            'Deleting user confirmation',
+            'Delete user',
+            `Are you sure you want to delete ${user.first_name} ${user.last_name}?`,
+            async () => await UserActions.deleteUser(id)
+        )
+    }
 }

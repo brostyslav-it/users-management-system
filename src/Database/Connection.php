@@ -15,7 +15,7 @@ class Connection
     /** @var mysqli The database connection. */
     private mysqli $connection;
 
-    private const HOST = 'localhost:3306';
+    private const HOST = 'localhost';
     private const USERNAME = 'root';
     private const PASSWORD = 'Rostik2005$';
     private const DATABASE = 'users_system';
