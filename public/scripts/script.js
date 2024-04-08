@@ -135,6 +135,23 @@ class Utils {
     static getActiveColor(status) {
         return status ? 'green' : 'gray'
     }
+
+    /**
+     * Escape HTML elements in a string.
+     * @param {string} str - The string with HTML.
+     * @returns {string} - Escaped string.
+     */
+    static escapeSpecialChars(str) {
+        const map = {
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;'
+        };
+
+        return str.replace(/[&<>"']/g, function(m) { return map[m]; });
+    }
 }
 
 /**
@@ -308,6 +325,9 @@ class UserActions {
         const res = await $.post(`/add`, user)
 
         RequestHandler.handleRequest(res, async () => {
+            user.first_name = Utils.escapeSpecialChars(user.first_name)
+            user.last_name = Utils.escapeSpecialChars(user.last_name)
+
             $('#users-table > tbody')
                 .append(DOMActions.createUserRow({
                     ...user,
