@@ -429,14 +429,14 @@ class HandleActions {
      * Handle OK control action.
      * @param {number} controlsNumber - The number of controls.
      */
-    async static handleOkControl(controlsNumber) {
+    static async handleOkControl(controlsNumber) {
         await new GroupActions(controlsNumber).okClicked()
     }
 
     /**
      * Handle user add action.
      */
-    async static handleUserAdd() {
+    static handleUserAdd() {
         DOMElements.userModal.modal('show')
         ModalActions.userModalShowed('Add')
         $('#modal-action').click(() => UserActions.addUser())
@@ -446,7 +446,7 @@ class HandleActions {
      * Handle user update action.
      * @param {string} id - The user ID.
      */
-    async static handleUserUpdate(id) {
+    static async handleUserUpdate(id) {
         const user = await UserActions.findUser(id)
 
         if (!user) {
@@ -465,7 +465,7 @@ class HandleActions {
      * Handle user deletion action.
      * @param {string} id - The user ID.
      */
-    async static handleUserDeletion(id) {
+    static async handleUserDeletion(id) {
         const user = await UserActions.findUser(id)
 
         if (user === false) {
