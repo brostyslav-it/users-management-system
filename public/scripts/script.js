@@ -254,8 +254,8 @@ class GroupActions {
     /**
      * Confirm users deletion.
      */
-    async confirmUsersDeletion() {
-        await ModalActions.fillAndShowConfirmModal(
+    confirmUsersDeletion() {
+        ModalActions.fillAndShowConfirmModal(
             'Deleting selected users confirmation',
             'Delete selected users',
             'Are you sure you want to delete selected users?',
@@ -296,7 +296,8 @@ class UserActions {
      * @returns {Promise<Object>} - Promise resolving to user object.
      */
     static async findUser(id) {
-        return (await $.post(`/user/${id}`)).user
+        const res = await $.post(`/user/${id}`)
+        return res.status ? res.user : false
     }
 
     /**
@@ -370,32 +371,13 @@ class ModalActions {
     }
 
     /**
-     * Show user modal.
-     * @param {object} e - The event object.
+     * Handle user modal show process.
      */
-    static async userModalShowed(e) {
-        if (e.relatedTarget === undefined) {
-            return
-        }
-
+    static userModalShowed(action) {
         this.clearUserModalError()
         DOMActions.updateUserFormInputs('', '', false, '')
-
-        const action = $(e.relatedTarget).data('action')
-        const actionText = action.charAt(0).toUpperCase() + action.slice(1)
-        const modalActionButton = $('#modal-action')
-
-        $('#modal-title').text(`${actionText} user`)
-        modalActionButton.off('click').text(actionText)
-
-        if (action === 'update') {
-            const user = await UserActions.findUser($(e.relatedTarget).data('id'))
-            DOMActions.updateUserFormInputs(user.first_name, user.last_name, user.status, user.role_id)
-            modalActionButton.click(() => UserActions.updateUser(user.id))
-            return
-        }
-
-        modalActionButton.click(() => UserActions.addUser())
+        $('#modal-title').text(`${action} user`)
+        $('#modal-action').off('click').text(action)
     }
 
     /**
@@ -405,7 +387,7 @@ class ModalActions {
      * @param {string} bodyText - The body text.
      * @param {Function} clickFunction - The function to execute on click.
      */
-    static async fillAndShowConfirmModal(labelText, btnText, bodyText, clickFunction) {
+    static fillAndShowConfirmModal(labelText, btnText, bodyText, clickFunction) {
         DOMElements.confirmModal.modal('show')
         DOMElements.confirmModalBtn.off('click').text(btnText).click(clickFunction)
         DOMElements.confirmModalLabel.text(labelText)
@@ -433,11 +415,6 @@ class ModalActions {
 }
 
 /**
- * Show user modal on show.bs.modal event.
- */
-DOMElements.userModal.on('show.bs.modal', (e) => ModalActions.userModalShowed(e))
-
-/**
  * Handle group check change.
  */
 DOMElements.groupCheck.change(function () {
@@ -453,13 +430,46 @@ async function handleOkControl(controlsNumber) {
 }
 
 /**
+ * Handle user add action.
+ */
+async function handleUserAdd() {
+    DOMElements.userModal.modal('show')
+    ModalActions.userModalShowed('Add')
+    $('#modal-action').click(() => UserActions.addUser())
+}
+
+/**
+ * Handle user update action.
+ * @param {string} id - The user ID.
+ */
+async function handleUserUpdate(id) {
+    const user = await UserActions.findUser(id)
+
+    if (!user) {
+        ModalActions.showErrorModal('User doesn\'t exist')
+        return
+    }
+
+    DOMElements.userModal.modal('show')
+    ModalActions.userModalShowed('Update')
+
+    DOMActions.updateUserFormInputs(user.first_name, user.last_name, user.status, user.role_id)
+    $('#modal-action').click(() => UserActions.updateUser(user.id))
+}
+
+/**
  * Handle user deletion action.
  * @param {string} id - The user ID.
  */
 async function handleUserDeletion(id) {
     const user = await UserActions.findUser(id)
 
-    await ModalActions.fillAndShowConfirmModal(
+    if (user === false) {
+        ModalActions.showErrorModal('User doesn\'t exist')
+        return
+    }
+
+    ModalActions.fillAndShowConfirmModal(
         'Deleting user confirmation',
         'Delete user',
         `Are you sure you want to delete ${user.first_name} ${user.last_name}?`,

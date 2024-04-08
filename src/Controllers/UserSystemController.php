@@ -98,7 +98,7 @@ class UserSystemController extends Controller
             [count($_POST['id']) !== count(array_filter($_POST['id'], 'is_numeric')), 'Invalid ID', 400]
         ]);
 
-        $this->validateWithResponse([[!$this->model->updateUsersStatus($_POST['id'], Request::getPost('status')), 'Error updating', 404]]);
+        $this->validateWithResponse([[!$this->model->updateUsersStatus($_POST['id'], Request::getPost('status')), "Some user doesn't exist, error updating", 404]]);
 
         Response::success();
     }
